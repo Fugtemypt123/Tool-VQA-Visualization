@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VQA Visualization</title>
+    <style>
+        /* 样式 */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .vqa-container {
+            margin-bottom: 40px;
+        }
+        .vqa-card {
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+        }
+        .vqa-card img {
+            width: 200px;
+            margin-right: 20px;
+        }
+        .vqa-card .content {
+            flex-grow: 1;
+        }
+        .toggle-button {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>VQA Data Visualization</h1>
+    <!-- 每个 VQA 数据集的标题和容器 -->
+
+    <div class="vqa-container">
+        <h2>GPT-4 Wrong Examples</h2>
+        <button class="toggle-button" onclick="toggleVisibility('vqa-container-1')">Show/Hide VQA Data</button>
+        <div id="vqa-container-1" class="vqa-content hidden"></div>  <!-- 默认隐藏 -->
+    </div>
+
+    <div class="vqa-container">
+        <h2>All Examples</h2>
+        <button class="toggle-button" onclick="toggleVisibility('vqa-container-2')">Show/Hide VQA Data</button>
+        <div id="vqa-container-2" class="vqa-content hidden"></div>  <!-- 默认隐藏 -->
+    </div>
+
+    <!-- JavaScript 动态加载 VQA 数据 -->
+    <script>
+        // 切换显示/隐藏的函数
+        function toggleVisibility(containerId) {
+            const container = document.getElementById(containerId);
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        // 切换 solution_path 的显示/隐藏
+        function toggleSolutionVisibility(solutionId) {
+            const solutionContainer = document.getElementById(solutionId);
+            if (solutionContainer.classList.contains('hidden')) {
+                solutionContainer.classList.remove('hidden');
+            } else {
+                solutionContainer.classList.add('hidden');
+            }
+        }
+
+        // 定义一个函数来加载 VQA 数据并显示
+        function loadVqaData(apiEndpoint, containerId) {
+            fetch(apiEndpoint)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById(containerId);
+                    data.forEach(item => {
+                        const card = document.createElement('div');
+                        card.classList.add('vqa-card');
+
+                        // 构建 solution_path 的内容
+                        let solutionContent = '';
+                    if (Array.isArray(item.context)) {
+                        item.context.forEach((step, index) => {
+                            // 使用 "name", "thought", "input", "output" 键生成 HTML
+                            // 处理 input 字典的内容
+                            let inputContent = '';
+                            if (typeof step.input === 'object' && step.input !== null) {
+                                Object.keys(step.input).forEach(key => {
+                                    inputContent += `<p><strong>${key}:</strong> ${step.input[key]}</p>`;
+                                });
+                            } else {
+                                inputContent = 'No input data provided';
+                            }
+
+                            // 构建每一步的完整内容
+                            solutionContent += `
+                                <div class="solution-step">
+                                    <p><strong>${step.name || 'Step ' + (index + 1)}:</strong></p>
+                                    <p><strong>Thought:</strong> ${step.thought || 'No thought provided'}</p>
+                                    <br>  <!-- 在 Input 和 Thought 之间加上换行 -->
+                                    <div><strong>Input:</strong> ${inputContent}</div>
+                                    <br>  <!-- 在 Input 和 Output 之间加上换行 -->
+                                    <p><strong>Output:</strong> ${step.output || 'No output provided'}</p>
+                                </div>
+                                <hr>
+                            `;
+                        });
+                    }
+                        console.log(solutionContent);
+
+                        const solutionId = `solution-${containerId}-${Math.random().toString(36).substr(2, 9)}`;
+
+                        const imageUrl = `/serve-image${item.image_path}`;
+                        card.innerHTML = `
+                            <img src="${imageUrl}" alt="Image" onerror="this.onerror=null;this.src='default.jpg';">
+                            <div class="content">
+                                <h3>Question: ${item.question}</h3>
+                                <p><strong>GPT-4 Wrong Answer:</strong> ${item.wrong_answer}</p>
+                                <p><strong>Answer:</strong> ${item.answer}</p>
+                                <button class="toggle-button" onclick="toggleSolutionVisibility('${solutionId}')">Show/Hide Solution Path</button>
+                                <div id="${solutionId}" class="solution-content hidden">
+                                    ${solutionContent}
+                                </div>
+                                
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching VQA data:', error);
+                });
+        }
+
+        // 分别加载四个不同的 VQA 数据集
+        loadVqaData('/vqa-data1', 'vqa-container-1');
+        loadVqaData('/vqa-data2', 'vqa-container-2');
+    </script>
+</body>
+</html>
