@@ -59,11 +59,30 @@
 </head>
 <body>
     <h1>Tool-VQA Data Annotation</h1>
+    <!-- 添加输入框和按钮 -->
+    <form id="usernameForm" method="POST" action="/submit-username">
+        <label for="username">标注人:</label>
+        <input type="text" id="username" name="username" required>
+    </form>
     <div class="vqa-explanation">
-        <h2>README</h2>
-        <p style="color: blue">我们通过GPT合成了一个 Tool-VQA 数据集，每条数据包含 image*1, question*2, answer*1, solution_path*1, 其中solution_path 由多步工具调用组成。这些工具包含常见的VQA工具如 Caption, Detection, OCR 等，也包含一些功能多样的工具如GoogleSearch, Calculator, TextToImage 等。我们希望各位标注者能够帮助我们检查这些 Tool-VQA 的质量。<br>
-        不同工具的输入、输出和功能都可以通过数据集中的使用方式推知，所以我们就不提供工具的具体介绍（非常长的文本）了，避免各位出现“标注未捷人先困”的状况。<br>
+        <h2>简介</h2>
+        <p style="color: black">我们通过GPT合成了一个 Tool-VQA 数据集，每条数据包含 image*1, question*2, answer*1, solution_path*1, 其中solution_path 由多步工具调用组成。我们希望各位标注者能够帮助我们检查这些 Tool-VQA 的质量。<br>
+        工具介绍、标注示例会在下面给出。所有的问题都是选择题，你不需要在键盘上输入任何内容，只需要点击选项即可。你也不需要自己操作这些工具（例如自己调用搜索引擎），只需要判断我们给出的工具输入输出是否正确即可。<br>
         请在标注完成后点击网页最下方的“提交”按钮，这样我们才能收集到你的数据。感谢你的参与！
+        </p>
+    </div>
+    <div class="vqa-explanation">
+        <h2>工具介绍</h2>
+        <p style="color: black"><strong>图像描述：</strong>输入一张图片，输出图片的语言描述。<br>
+        <strong>文字识别：</strong>输入一张图片，输出图片中的文字。<br>
+        <strong>目标计数：</strong>输入一张图片和一个目标，输出图片中目标的数量。<br>
+        <strong>目标检测：</strong>输入一张图片和一个目标，输出目标在图片中的位置坐标。<br>
+        <strong>区域属性描述：</strong>输入一张图片、一个属性和一个位置坐标，输出该区域的属性描述。<br>
+        <strong>谷歌搜索：</strong>输入一个要搜索的问题，输出搜索结果。<br>
+        <strong>计算器：</strong>输入一个数学表达式，输出计算结果。<br>
+        <strong>图片生成：</strong>输入一个文本描述，输出根据描述生成的图片。<br>
+        <strong>绘制图表：</strong>输入一段python代码用于生成图表，输出生成的图表图片。（如果看不懂python代码可以默认它是正确的）<br>
+        <strong>框中物体：</strong>输入一张图片和一个位置坐标，输出在这张图片上把该位置坐标框中后的图片。<br>
         </p>
     </div>
     <!-- 人工书写的VQA示例 -->
@@ -72,80 +91,68 @@
         <div class="vqa-card">
             <img src="/serve-image/network_space/server126/shared/yinshaofeng/ToolLLM/GTA/visualize/demo.png" alt="示例图片" onerror="this.onerror=null;this.src='default.jpg';">
             <div class="content">
-                <h3>Question: What is the texture of this object?</h3>
-                <p><strong>Original Question:</strong> What is the texture of the object in the middle of the image?</p>
-                <p><strong>Answer:</strong> rough and uneven</p>
-                <h3><br>Solution Step:</h3>
+                <p><strong>问题1:</strong> 这个物体的质地是什么？</p>
+                <p><strong>问题2:</strong> 图像中间的物体质地是什么？</p>
+                <p><strong>答案:</strong> 粗糙且不平整。</p>
+                <p style="color: blue"><strong>标注1: 问题1和2哪个更好？（选项：问题1/问题2/一样好/都不好（一键否决））</strong> 本题中应选择“问题2”。<br>
+                解释：<br>
+                1. 这个例子中问题1根本不能回答（没指定物体），所以问题2更好。<br>
+                2. 如果一个问题出现（1）不能回答（2）不需要看图就能回答（3）答非所问或答案明显错误 这三种情况之一，就是不好。<br>
+                （1）“不能回答”的例子是“这个物体的质地是什么？”，因为没指定物体不知道说的是图中的哪个物体。<br>
+                （2）“不需要看图就能回答”的例子是“大多数树皮的颜色是什么？”，因为基本上所有树皮都是棕色的，不看图也知道。<br>
+                （3）“答非所问”的例子是问你“这个物体的质地是什么？”回答“灰色”，明显错误的例子是回答“光滑而平整”。<br>
+                3. 如果问题1和2都没出现上述三种情况，那么根据你的主观判断（比如难度、清晰度等）选择更好的问题即可；如果问题1和2是差不多的那么就选“一样好”。<br>
+                <strong>以下提到的“问题”都是你这个题里选的“更好的问题”，不好的那个就当没出现过。</strong><br>
+                <strong>如果你选的是“都不好”那么直接跳过后面的问题即可。（但请不要恶意全部选择“都不好”，我们会后续检查）</strong><br>
+                </p>
+                <p style="color: blue"><strong><br>标注2: 你觉得该问题的答案对吗？（选项：可以算对/无法判断/肯定不对（一键否决））</strong> 本题中应选择“对”。<br>
+                    解释：<br>
+                    1. 此题根据常识+看图判断即可，如果一看就是错的就选“肯定不对”并跳过该题，不会做的话请看一下解题路径里的信息，如果看完信息会做了就选对，还不会做就选“无法判断”，不需要浪费时间主动去搜索答案。（但请不要恶意全部选择“肯定不对”或者“无法判断”，我们会后续检查）<br>
+                    2. 如果答案是'image/output.png'，说明这是一个生成图片的任务，此时需要看一下生成图片工具的输入符不符合question，如果基本符合就选“可以算对”，完全不符合就选“肯定不对”。<br>
+                    </p>
+                <p style="color: blue"><strong><br>标注3: 该问题是客观题还是主观题？（选项：客观/主观）</strong> 本题中应选择“客观”。<br>
+                    解释：<br>
+                    1. 虽然不同人的形容词会有偏差，但石头的纹理是客观的事实，所以选择“客观”。<br>
+                    2. 主观题一般是询问“我应该怎么做”“这个物体有什么用”等开放式问题，答案不唯一。<br>
+                    </p>
+                <h3><br>解题流程:</h3>
                 <div class="solution-step">
-                    <p><strong>Step 1: ImageDescription</strong></p>
-                    <p><strong>Thought:</strong> To understand the question, I first need to gather an initial visual description of the objects in the image. This will allow me to understand the scene, including any specific distinctions between multiple objects that could have different textures.</p>
-                    <p><strong>Input:</strong> image: /network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/ScienceQA/image_with_text/17386.png</p>
-                    <p><strong>Output:</strong> The image shows three objects: 1. A potato sack (left): A large sack made of a rough material, typically used for carrying potatoes. 2. A rock (center): A textured and irregularly shaped rock. 3. Tree bark (right): The rough surface of a tree trunk with some green leaves visible at the top. Each item is labeled with its name underneath.</p>
+                    <p><strong><br>第1步: 图像描述</strong></p>
+                    <p><strong>思考:</strong> 为了理解这个问题，我首先需要收集对图像中物体的初步视觉描述。这将帮助我理解场景，包括可能具有不同质地的多个物体之间的具体区别。</p>
+                    <p><strong>输入:</strong> 图片路径: /network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/ScienceQA/image_with_text/17386.png</p>
+                    <p><strong>输出:</strong> 图像展示了三个物体：  
+                        1. 土豆袋（左侧）：一个由粗糙材料制成的大袋子，通常用于装运土豆。  
+                        2. 石头（中间）：一块具有纹理且形状不规则的岩石。  
+                        3. 树皮（右侧）：树干的粗糙表面，顶部可见一些绿色的叶子。每个物体下面都有其名称标签。</p>
+                    <p style="color: blue"><strong>标注4.1: 这一步对于解题是否有帮助？（选项：是/否）</strong> 本题中应选择“是”。<br>
+                    解释：<br>
+                    1. 如果这一步的输出对于解题有帮助就选择“是”，如果这一步的输出在解题思路（可以看“思考”）中完全没用就选择“否”。<br>
+                    2. 一般“否”的情况有以下几种：（1）倒数第二步就得出答案了，最后一步多余 （2）后面的工具没用上前面的结果<br>
+                    </p>
                 </div>
                 <div class="solution-step">
-                    <p><strong>Step 2: TextToBbox</strong></p>
-                    <p><strong>Thought:</strong> Since the question asks specifically about the texture of the 'rock,' I will use the TextToBbox tool to locate the bounding box of the rock object in the image. This helps me zero in on the correct object to analyze its texture.</p>
-                    <p><strong>Input:</strong> 
-                        image: /network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/ScienceQA/image_with_text/17386.png<br>
-                        text: rock
+                    <p><strong><br>第2步: 目标检测</strong></p>
+                    <p><strong>思考:</strong> 由于问题特别询问“石头”的质地，我将使用 目标检测 工具来定位图像中石头对象的边界框。这有助于我聚焦于正确的物体，以分析其质地。</p>
+                    <p><strong>输入:</strong> 
+                        图片路径: /network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/ScienceQA/image_with_text/17386.png<br>
+                        物体: 石头
                     </p>
-                    <p><strong>Output:</strong> (212, 52, 336, 124), score 86</p>
+                    <p><strong>输出:</strong> (212, 52, 336, 124), score 86</p>
+                    <p style="color: blue"><strong>标注4.2: 这一步对于解题是否有帮助？（选项：是/否）</strong> 本题中应选择“是”。<br>
+                        </p>
                 </div>
                 <div class="solution-step">
-                    <p><strong>Step 3: RegionAttributeDescription</strong></p>
-                    <p><strong>Thought:</strong> Next, I use the RegionAttributeDescription tool to describe the specific texture of the 'rock' within the bounding box. This step provides detailed information about the physical characteristics of the object—like whether it feels rough, smooth, uneven, or something else—helping me determine the correct answer.</p>
-                    <p><strong>Input:</strong> 
-                        image: /network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/ScienceQA/image_with_text/17386.png<br>
-                        attribute: texture<br>
-                        bbox: (212, 52, 336, 124)
+                    <p><strong><br>第3步: 区域属性描述</strong></p>
+                    <p><strong>思考:</strong> 接下来，我使用 区域属性描述 工具来描述边界框内“石头”的具体质地。这一步提供了关于物体物理特征的详细信息，例如它是否感觉粗糙、光滑、不平整或其他特征，帮助我确定正确的答案。</p>
+                    <p><strong>输入:</strong> 
+                        图片路径: /network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/ScienceQA/image_with_text/17386.png<br>
+                        属性: 纹理<br>
+                        位置坐标: (212, 52, 336, 124)
                     </p>
-                    <p><strong>Output:</strong> The texture of the object in the image appears to be rough and uneven. The surface has multiple small, irregularly-shaped protrusions and speckles of various colors. It resembles a natural rock surface with a grainy and jagged touch due to the scattered dark and light-colored patches. The overall texture suggests it could be porous or gritty to the touch.</p>
+                    <p><strong>输出:</strong> 图像中物体的质地似乎是粗糙且不平整的。表面有多个小的不规则凸起和各种颜色的斑点。它类似于自然岩石表面，由于散布的深浅色斑，触感呈颗粒状和 jagged（锯齿状）。整体质地表明，它可能是多孔的或在触感上有颗粒感。</p>
+                    <p style="color: blue"><strong>标注4.3: 这一步对于解题是否有帮助？（选项：是/否）</strong> 本题中应选择“是”。<br>
+                    </p>
                 </div>
-                <h3><br>需要人工标注的问题:</h3>
-                <ul>
-                    <li>1. Question是否需要看图片才能回答: 是</li>
-                    <p style="color: blue; margin-left: 20px;">
-                        VQA的基本原则是“看图回答”，因此我们希望标注者能够帮我们去掉那些不需要看图就能答的题。<br>
-                        在此例中，'this object' 指的是图片中的物体，而且通过文本描述无法判断物体及其特征，因此需要看图片才能回答。<br>
-                        假如问题变成 'What is the texture of this rough and uneven rock?'，那么此时就不需要看图片也能回答，而且这个问题把答案都带出来了，令人有忍俊不禁之感。
-                    </p>
-                    <li>2. Original Question和Question哪个更好: Original Question</li>
-                    <p style="color: blue; margin-left: 20px;">
-                        首先做一点说明： Question 是 Original Question 通过机械地“把问题中的名词替换掉”的方法，强行让 Question 必需看图，所获得的调整后的 Question 。<br>
-                        但在实验中我们发现一个问题：GPT可能会把一些必要的形容词省略掉，造成指代不清的现象，我们希望标注者能够帮我们过滤掉这类问题。<br>
-                        在此例中，图片中有3个物体，而调整后 Question 的 'this object' 无法定位某一个物体（事实上把这道题变成了一个无法回答的问题），而 Orignial Question 则明确指出了要询问的是 'the object in the middle of the image' ，因此更好。<br>
-                        <strong>Special Case 1:</strong> 如果 Original Question == Question ，那么我们倾向于认为 Original Question 更好。<br>
-                        <strong>Special Case 2:</strong> 如果你在这里选择了 Original Question 更好，那么后面所有涉及到 Question 的问题，我们都视作是在问 Original Question。换言之，我们保留“更好”的那个作为最终 Question。<br>
-                    </p>
-                    <li>3. Answer是否正确: 正确</li>
-                    <p style="color: blue; margin-left: 20px;">
-                        我们希望标注者能够用自己的知识和经验来判断 Answer 是否正确，但是我们注意到，有些包含 GoogleSearch 的 VQA 难度可能过高，无法在不使用搜索引擎的情况下回答。<br>
-                        但我们也并不想耽误各位的时间，所以如果遇到不会的问题可以直接看 solution_path 里面 GoogleSearch 返回的结果。该结果就是我们通过 google api 调用得到的真实结果，一定符合 tool 调用时输入的 query 关键字。<br>
-                        所以在这种情况下，标注者只需要检查 GoogleSearch 输入的 query 关键字是否正确，以及 answer 是否符合 GoogleSearch 输出的结果，而不需要自己去尝试搜索一个答案。其他工具也是同理，可以直接参考工具输出的结果。<br>
-                        在此例中，Answer 'rough and uneven' 显然是正确的答案。<br>
-                        <strong>Special Case 1:</strong> 如果 Answer == 'image/output.png'，说明这是一道生成式VQA，此时我们希望标注者能够检查最后一个工具（通常是TextToImage）所输入的 prompt 是否符合问题的要求，而不需要考虑实际输出的图片。<br>
-                        <strong>Special Case 2:</strong> CountGivenObject和OCR工具可能会返回错误的结果（例如文字识别错误），此时需要标注者自行判断答案是否正确。
-                    </p>
-                    <li>4. Answer是否唯一: 是</li>
-                    <p style="color: blue; margin-left: 20px;">
-                        我们希望标注者能够判断这个问题是不是开放式问题，即是否有多个可以接受的答案。<br>
-                        在此例中，'rough and uneven' 似乎是游走在开放式问题的边缘，但这个问题至少询问的是一个客观的内容，我们标准松一点，还是把它算作唯一答案。<br>
-                        如果问题变成 'What can you do with the object in the middle?'，那么这就显然是一个答案不唯一的开放式问题了。
-                    </p>
-                    <li>5. Solution Path 里面的每个工具是否都有必要？</li>
-                    <p style="margin-left: 20px;">
-                        1. ImageDescription: 是<br>
-                        2. TextToBbox: 是<br>
-                        3. RegionAttributeDescription: 是<br>
-                    </p>
-                    <p style="color: blue; margin-left: 40px;">
-                        请注意：这个题目需要点击 Show/Hide Solution Path 的按钮才能看到选项。<br>
-                        我们希望标注者能够帮我们检查 Solution Path 中的每个工具是否都是必要的，这里的必要指的是对 LLM 解答题目至少有一点正向贡献。<br>
-                        在此例中，问题是 'What is the texture of the object in the middle of the image?'，那么如果 ImageDescription 一上来就把答案带出来了，后面的两个工具（目标检测和细节描述）都没用了。然而实际上 ImageDescription 并没有提到 texture 具体是什么，所以我们需要进行目标检测+细节描述，因此这三个工具都是有用的。<br>
-                        如果某一个工具的输出完全没有对答案产生贡献，比如此例中如果用 CountGivenObject 工具数了石头并返回了 '1'，那么它就完全没有贡献，需要在对应的选项中选择‘否’。<br>
-                        请注意这个“贡献”是针对 LLM 而言的。可能我们会觉得这个问题看一眼就解决了，但LLM无法“看”，所以需要多步工具调用来获取图像的更多信息。
-                    </p>
-                </ul>
                 
             </div>
         </div>
@@ -167,15 +174,15 @@
             }
         }
 
-        // 切换 solution_path 的显示/隐藏
-        function toggleSolutionVisibility(solutionId) {
-            const solutionContainer = document.getElementById(solutionId);
-            if (solutionContainer.classList.contains('hidden')) {
-                solutionContainer.classList.remove('hidden');
-            } else {
-                solutionContainer.classList.add('hidden');
-            }
-        }
+        // // 切换 solution_path 的显示/隐藏
+        // function toggleSolutionVisibility(solutionId) {
+        //     const solutionContainer = document.getElementById(solutionId);
+        //     if (solutionContainer.classList.contains('hidden')) {
+        //         solutionContainer.classList.remove('hidden');
+        //     } else {
+        //         solutionContainer.classList.add('hidden');
+        //     }
+        // }
 
         // 定义一个函数来加载 VQA 数据并显示
         function loadVqaData(apiEndpoint, containerId) {
@@ -194,7 +201,7 @@
                                 let inputContent = '';
                                 if (typeof step.input === 'object' && step.input !== null) {
                                     Object.keys(step.input).forEach(key => {
-                                        inputContent += `<p><strong>${key}:</strong> ${step.input[key]}</p>`;
+                                        inputContent += `<p style="margin-left: 40px;"><strong>${key}:</strong> ${step.input[key]}</p>`;
                                     });
                                 } else {
                                     inputContent = 'No input data provided';
@@ -205,9 +212,10 @@
                                 let stepQuestionForm = `
                                     <form id="${stepFormId}" class="solution-form" data-question-index="${questionIndex}">
                                         <label>
-                                            该步骤在解题路径中是否必要？
+                                            <p style="color: blue"><strong>标注4.${stepIndex+1}: 这一步对于解题是否有帮助？</strong>
                                             <input type="radio" name="is-important-${questionIndex}-${stepIndex}" value="yes"> 是
                                             <input type="radio" name="is-important-${questionIndex}-${stepIndex}" value="no"> 否
+                                            </p>
                                         </label>
                                         <input type="hidden" name="step-name" value="${step.name || 'Step ' + (stepIndex + 1)}">
                                     </form>
@@ -215,10 +223,10 @@
 
                                 solutionContent += `
                                     <div class="solution-step">
-                                        <p><strong>${step.name || 'Step ' + (stepIndex + 1)}:</strong></p>
-                                        <p><strong>Thought:</strong> ${step.thought || 'No thought provided'}</p>
-                                        <div><strong>Input:</strong> ${inputContent}</div>
-                                        <p><strong>Output:</strong> ${step.output || 'No output provided'}</p>
+                                        <p><strong>第${stepIndex+1}步：${step.name || 'Step ' + (stepIndex + 1)}</strong></p>
+                                        <p><strong>思考：</strong> ${step.thought || 'No thought provided'}</p>
+                                        <div><strong>输入：</strong> ${inputContent}</div>
+                                        <p><strong>输出：</strong> ${step.output || 'No output provided'}</p>
                                         ${stepQuestionForm}
                                     </div>
                                     <hr>
@@ -231,40 +239,41 @@
                         card.innerHTML = `
                             <img src="${imageUrl}" alt="Image" onerror="this.onerror=null;this.src='default.jpg';">
                             <div class="content">
-                                <h3>Question: ${item.question}</h3>
-                                <p><strong>Original Question:</strong> ${item.ori_question}</p>
-                                <p><strong>Answer:</strong> ${item.answer}</p>
-                                <button class="toggle-button" onclick="toggleSolutionVisibility('${solutionId}')">Show/Hide Solution Path</button>
-                                <div id="${solutionId}" class="solution-content hidden">
-                                    ${solutionContent}
-                                </div>
+                                <p><strong>问题1:</strong>  ${item.question}</p>
+                                <p><strong>问题2:</strong> ${item.ori_question}</p>
+                                <p><strong>答案:</strong> ${item.answer}</p>
                                 <!-- 问题表单 -->
                                 <form class="question-form" data-question-index="${questionIndex}">
                                     <label>
-                                        1. Question是否需要看图片才能回答？
-                                        <input type="radio" name="needs-image" value="yes"> 是
-                                        <input type="radio" name="needs-image" value="no"> 否
+                                        <p style="color: blue"><strong>标注1: 问题1和2哪个更好？（判断依据：是否能回答、是否需要看图、是否答非所问）</strong>
+                                        <input type="radio" name="better-ques" value="1"> 问题1
+                                        <input type="radio" name="better-ques" value="2"> 问题2
+                                        <input type="radio" name="better-ques" value="3"> 一样好
+                                        <input type="radio" name="better-ques" value="0"> 都不好（一键否决）
+                                        </p>
                                     </label>
                                     <label>
-                                        2. Original Question和Question哪个更好？
-                                        <input type="radio" name="better-ques" value="old"> Original Question
-                                        <input type="radio" name="better-ques" value="new"> Question
+                                        <p style="color: blue"><strong>标注2: 你觉得该问题的答案对吗？</strong>
+                                        <input type="radio" name="correct-answer" value="yes"> 可以算对
+                                        <input type="radio" name="correct-answer" value="unknown"> 无法判断
+                                        <input type="radio" name="correct-answer" value="no"> 肯定不对（一键否决）
+                                        </p>
                                     </label>
                                     <label>
-                                        3. Answer是否正确？
-                                        <input type="radio" name="is-correct" value="yes"> 正确
-                                        <input type="radio" name="is-correct" value="no"> 错误
-                                        <input type="radio" name="is-correct" value="cant"> 无法判断
-                                    </label>
-                                    <label>
-                                        4. Answer是否唯一？
-                                        <input type="radio" name="is-unique" value="yes"> 是
-                                        <input type="radio" name="is-unique" value="no"> 否
+                                        <p style="color: blue"><strong>标注3: 该问题是客观题还是主观题？（是否只有一个最合理的答案）</strong>
+                                        <input type="radio" name="only-answer" value="1"> 客观
+                                        <input type="radio" name="only-answer" value="0"> 主观
+                                        </p>
                                     </label>
                                     <input type="hidden" name="question" value="${item.question}">
                                     <input type="hidden" name="answer" value="${item.answer}">
                                     <input type="hidden" name="image_path" value="${item.image_path}">
                                 </form>
+                                <h3><br>解题流程:</h3>
+                                <div id="${solutionId}" class="solution-content">
+                                    ${solutionContent}
+                                </div>
+                                
                             </div>
                         `;
                         container.appendChild(card);
@@ -296,13 +305,13 @@
             questionForms.forEach((form, questionIndex) => {
                 const formData = new FormData(form);
                 const result = {
+                    username: document.getElementById('username').value,
                     question: formData.get('question'),
                     answer: formData.get('answer'),
                     image_path: formData.get('image_path'),
-                    needs_image: formData.get('needs-image'),
-                    is_correct: formData.get('is-correct'),
-                    is_unique: formData.get('is-unique'),
                     better_ques: formData.get('better-ques'),
+                    only_answer: formData.get('only-answer'),
+                    correct_answer: formData.get('correct-answer'),
                     steps: []  // 用于存放步骤信息
                 };
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 启动 Flask 实例
-for ((i=0; i<160; i++)); do
+for ((i=0; i<80; i++)); do
     echo "Starting server with index $i..."
     
     # 启动 Flask 应用，每个应用根据 idx 计算端口和数据范围

@@ -1,0 +1,48 @@
+[
+    {
+        "question": "What is the phone number displayed in this picture?",
+        "answer": "(315) 343-6363",
+        "image_path": "/network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/TextVQA/train_images/545c64649d28aed9.jpg",
+        "needs_image": "yes",
+        "is_correct": "yes",
+        "steps": [
+            {
+                "step_name": "ImageDescription",
+                "is_important": "yes"
+            },
+            {
+                "step_name": "OCR",
+                "is_important": "yes"
+            },
+            {
+                "step_name": "GoogleSearch",
+                "is_important": "yes"
+            }
+        ]
+    },
+    {
+        "question": "What is the primary function of this layer of the tissue structure shown in the image?",
+        "answer": "Mechanical support",
+        "image_path": "/network_space/server126/shared/yinshaofeng/ToolLLM/GTA/datasets/AI2Diagram/ai2d/images/570.png",
+        "needs_image": "no",
+        "is_correct": "no",
+        "steps": [
+            {
+                "step_name": "ImageDescription",
+                "is_important": "no"
+            },
+            {
+                "step_name": "TextToBbox",
+                "is_important": "no"
+            },
+            {
+                "step_name": "RegionAttributeDescription",
+                "is_important": "no"
+            },
+            {
+                "step_name": "GoogleSearch",
+                "is_important": "no"
+            }
+        ]
+    }
+]
