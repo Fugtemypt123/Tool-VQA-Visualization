@@ -20,7 +20,7 @@ def index():
 # 返回第一个 JSON 文件的数据
 @app.route('/vqa-data1')
 def vqa_data1():
-    with open('/network_space/server126/shared/yinshaofeng/ToolLLM/GTA/agentlego/annotators/generated_data/demo/annotate_4000.json', 'r') as f:
+    with open('datas/annotate_4000.json', 'r') as f:
         vqa_items = json.load(f)
         # spilt vqa_items into NUM parts
         vqa_items = vqa_items[args.idx*LEN:min((args.idx+1)*LEN, len(vqa_items))]
